@@ -4,6 +4,7 @@ import cors from 'cors';
 import compression from 'compression';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
+import companiesRoutes from './routes/companies.js';
 
 dotenv.config();
 
@@ -15,6 +16,9 @@ app.use(cors());
 app.use(compression());
 app.use(morgan('dev'));
 app.use(express.static('public'));
+
+// Rutas
+app.use('/companies', companiesRoutes);
 
 app.get('/life', (req, res) => res.send('server running'));
 
