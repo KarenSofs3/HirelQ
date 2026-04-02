@@ -22,7 +22,7 @@ app.use('/companies', companiesRoutes);
 
 app.get('/life', (req, res) => res.send('server running'));
 
-app.use('*', (req, res) => res.status(404).json({ message: 'Page not found' }));
+app.use((req, res) => res.status(404).json({ message: 'Page not found' }));
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
@@ -31,5 +31,3 @@ mongoose.connect(process.env.MONGO_URI)
     })
     .catch((error) => console.error('Error al conectar a MongoDB:', error));
 
-
-app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));

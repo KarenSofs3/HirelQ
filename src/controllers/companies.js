@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Company from '../models/companies.js';
 
 export const getCompanies = async (req, res) => {
@@ -28,6 +29,77 @@ export const getCompanies = async (req, res) => {
         res.status(200).json(data);
     } catch (error) {
         console.error('Error al obtener compañías:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+};
+
+export const getCompanyById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Validar que el id sea un ObjectId válido
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'ID de compañía inválido' });
+        }
+
+        // Buscar la compañía por ID
+        const company = await Company.findOne({ _id: id, activa: true });
+
+        // Si no se encuentra la compañía
+        if (!company) {
+            return res.status(404).json({ message: 'Compañía no encontrada' });
+        }
+
+        // Retornar la compañía encontrada
+        res.status(200).json({
+            message: 'Compañía obtenida exitosamente',
+            company
+        });
+    } catch (error) {
+        console.error('Error al obtener compañía por ID:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+};
+
+export const createCompany = async (req, res) => {
+    try {
+        const { nombre, email_contacto, plan, activa } = req.body;
+
+        // Validar campos obligatorios
+        if (!nombre || !email_contacto) {
+            return res.status(400).json({ message: 'Los campos nombre y email_contacto son obligatorios' });
+        }
+
+        // Crear nueva compañía
+        const nuevaCompania = new Company({
+            nombre,
+            email_contacto,
+            plan,
+            activa
+        });
+
+        // Guardar en la base de datos
+        const companiaGuardada = await nuevaCompania.save();
+
+        // Retornar la compañía creada
+        res.status(201).json({
+            message: 'Compañía creada exitosamente',
+            company: companiaGuardada
+        });
+    } catch (error) {
+        console.error('Error al crear compañía:', error);
+
+        // Manejar error de email duplicado
+        if (error.code === 11000 && error.keyPattern && error.keyPattern.email_contacto) {
+            return res.status(409).json({ message: 'El email de contacto ya está registrado' });
+        }
+
+        // Otros errores de validación de Mongoose
+        if (error.name === 'ValidationError') {
+            const errores = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ message: 'Errores de validación', errores });
+        }
+
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 };
