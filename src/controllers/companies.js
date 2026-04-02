@@ -103,3 +103,87 @@ export const createCompany = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 };
+
+export const updateCompany = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Validar que el id sea un ObjectId válido
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'ID de compañía inválido' });
+        }
+
+        // Campos permitidos para actualizar
+        const allowedFields = ['nombre', 'email_contacto', 'plan', 'activa'];
+        const updateData = {};
+
+        // Filtrar solo los campos permitidos
+        for (const field of allowedFields) {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        }
+
+        // Verificar que al menos un campo válido se esté actualizando
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: 'No se proporcionaron campos válidos para actualizar' });
+        }
+
+        // Validar unicidad del email_contacto si se está actualizando
+        if (updateData.email_contacto) {
+            const existingCompany = await Company.findOne({ email_contacto: updateData.email_contacto, _id: { $ne: id } });
+            if (existingCompany) {
+                return res.status(400).json({ message: 'El email de contacto ya está registrado en otra compañía' });
+            }
+        }
+
+        // Actualizar la compañía
+        const updatedCompany = await Company.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+
+        // Si no se encuentra la compañía
+        if (!updatedCompany) {
+            return res.status(404).json({ message: 'Compañía no encontrada' });
+        }
+
+        // Retornar la compañía actualizada
+        res.status(200).json({
+            message: 'Compañía actualizada exitosamente',
+            company: updatedCompany
+        });
+    } catch (error) {
+        console.error('Error al actualizar compañía:', error);
+
+        // Manejar errores de validación de Mongoose
+        if (error.name === 'ValidationError') {
+            const errores = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ message: 'Errores de validación', errores });
+        }
+
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+};
+
+export const deleteCompany = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'ID de compañía inválido' });
+        }
+
+        const company = await Company.findOne({ _id: id, activa: true });
+
+        if (!company) {
+            return res.status(404).json({ message: 'Compañía no encontrada o ya inactiva' });
+        }
+
+        company.activa = false;
+        await company.save();
+
+        res.status(200).json({ message: 'Compañía desactivada con éxito' });
+
+    } catch (error) {
+        console.error('Error al eliminar compañía:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+};
