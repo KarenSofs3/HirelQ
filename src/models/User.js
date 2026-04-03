@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   company_id: {
@@ -30,6 +30,11 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'empresa', 'candidato'],
     required: true
   },
+  refreshToken: {
+    type: String,
+    default: null,
+    select: false
+  },
   activo: {
     type: Boolean,
     default: true
@@ -38,4 +43,4 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('User', userSchema);
+export default mongoose.model('User', userSchema);
