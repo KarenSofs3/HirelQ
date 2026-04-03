@@ -30,6 +30,11 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'empresa', 'candidato'],
     required: true
   },
+  refreshToken: {
+    type: String,
+    default: null,
+    select: false
+  },
   activo: {
     type: Boolean,
     default: true

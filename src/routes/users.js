@@ -1,6 +1,6 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { register, login } from '../controllers/users.js';
+import { register, login, refreshToken } from '../controllers/users.js';
 import { authenticate, requireRole } from '../middlewares/webToken.js';
 
 const router = express.Router();
@@ -19,6 +19,7 @@ const loginLimiter = rateLimit({
 // Rutas de autenticación
 router.post('/register', register);
 router.post('/login', loginLimiter, login);
+router.post('/refresh', refreshToken);
 router.get('/admin-test', authenticate, requireRole('admin'), (req, res) => {
   res.json({ message: 'Eres admin 😎' });
 });
