@@ -202,3 +202,26 @@ export const logout = async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
+export const getMe = async (req, res) => {
+  try {
+    const { id } = req.user;
+
+    // Buscar usuario excluyendo campos sensibles
+    const user = await User.findById(id).select('-password -refreshToken');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.status(200).json({
+      id: user._id,
+      nombre: user.nombre,
+      email: user.email,
+      rol: user.rol
+    });
+  } catch (error) {
+    console.error('Error en getMe:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};
