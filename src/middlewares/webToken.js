@@ -7,12 +7,13 @@ export const authenticate = (req, res, next) => {
       return res.status(401).json({ message: 'Token de autenticación requerido' });
     }
 
-    const token = authHeader.substring(7); // Remover 'Bearer '
+    const token = authHeader.substring(7);
 
-    // Verificar token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const accessTokenSecret =
+      process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET;
 
-    // Guardar payload en req.user
+    const decoded = jwt.verify(token, accessTokenSecret);
+
     req.user = decoded;
 
     next();

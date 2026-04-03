@@ -154,3 +154,51 @@ export const refreshToken = async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
+export const logout = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res
+        .status(400)
+        .json({ message: "Refresh token requerido" });
+    }
+
+    const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
+
+    if (!refreshTokenSecret) {
+      console.error("Faltan secretos de JWT en las variables de entorno.");
+      return res
+        .status(500)
+        .json({ message: "Configuración de autenticación incorrecta" });
+    }
+
+    let payload;
+    try {
+      payload = jwt.verify(refreshToken, refreshTokenSecret);
+    } catch (err) {
+      console.error("Refresh token inválido o expirado:", err);
+      return res
+        .status(403)
+        .json({ message: "Refresh token inválido o expirado" });
+    }
+
+    const { id } = payload;
+
+    // Buscar usuario y verificar que el refreshToken coincida
+    const user = await User.findById(id).select("+refreshToken");
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ message: "Refresh token no autorizado" });
+    }
+
+    // Invalidar el refreshToken
+    user.refreshToken = null;
+    await user.save();
+
+    res.json({ message: "Logout exitoso" });
+  } catch (error) {
+    console.error("Error en logout:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
