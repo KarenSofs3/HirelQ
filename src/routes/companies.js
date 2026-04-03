@@ -1,5 +1,6 @@
 import express from 'express';
 import { getCompanies, getCompanyById, createCompany, updateCompany, deleteCompany } from '../controllers/companies.js';
+import { authenticate, requireRole } from '../middlewares/webToken.js';
 
 const router = express.Router();
 
@@ -16,6 +17,6 @@ router.post('/', createCompany);
 router.put('/:id', updateCompany);
 
 // DELETE /companies/:id
-router.delete('/:id', deleteCompany);
+router.delete('/:id', authenticate, requireRole('admin'), deleteCompany);
 
 export default router;

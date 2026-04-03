@@ -5,6 +5,8 @@ import compression from 'compression';
 import mongoose from 'mongoose';
 import morgan from 'morgan';
 import companiesRoutes from './routes/companies.js';
+import usersRoutes from './routes/users.js';
+import { authenticate, requireRole } from './middlewares/webToken.js';
 
 dotenv.config();
 
@@ -19,8 +21,31 @@ app.use(express.static('public'));
 
 // Rutas
 app.use('/companies', companiesRoutes);
+app.use('/auth', usersRoutes);
 
 app.get('/life', (req, res) => res.send('server running'));
+
+app.get('/protected', authenticate, (req, res) => {
+    res.json({
+        message: 'Acceso permitido',
+        user: req.user
+    });
+});
+
+// Ejemplo de ruta con requireRole
+app.get('/admin-only', authenticate, requireRole('admin'), (req, res) => {
+    res.json({
+        message: 'Acceso exclusivo para administradores',
+        user: req.user
+    });
+});
+
+app.get('/empresa-or-admin', authenticate, requireRole(['admin', 'empresa']), (req, res) => {
+    res.json({
+        message: 'Acceso para administradores o empresas',
+        user: req.user
+    });
+});
 
 app.use((req, res) => res.status(404).json({ message: 'Page not found' }));
 
