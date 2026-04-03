@@ -160,9 +160,7 @@ export const logout = async (req, res) => {
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      return res
-        .status(400)
-        .json({ message: "Refresh token requerido" });
+      return res.status(400).json({ message: "Refresh token requerido" });
     }
 
     const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
@@ -203,25 +201,70 @@ export const logout = async (req, res) => {
   }
 };
 
+export const changePassword = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Todos los campos son obligatorios" });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: "La contraseña debe tener al menos 6 caracteres",
+      });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        message: "La nueva contraseña debe ser diferente a la actual",
+      });
+    }
+    const user = await User.findById(id).select("+password");
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Contraseña actual incorrecta" });
+    }
+
+    const saltRounds = 10;
+    user.password = await bcrypt.hash(newPassword, saltRounds);
+    user.refreshToken = null;
+    await user.save();
+
+    res.status(200).json({ message: "Contraseña actualizada correctamente" });
+  } catch (error) {
+    console.error("Error en changePassword:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};
+
 export const getMe = async (req, res) => {
   try {
     const { id } = req.user;
 
     // Buscar usuario excluyendo campos sensibles
-    const user = await User.findById(id).select('-password -refreshToken');
+    const user = await User.findById(id).select("-password -refreshToken");
 
     if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
     res.status(200).json({
       id: user._id,
       nombre: user.nombre,
       email: user.email,
-      rol: user.rol
+      rol: user.rol,
     });
   } catch (error) {
-    console.error('Error en getMe:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error("Error en getMe:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };
