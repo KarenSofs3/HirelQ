@@ -187,3 +187,42 @@ export const updateJobPosition = async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 };
+
+export const deleteJobPosition = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const company_id = req.user.company_id;
+
+    if (!company_id) {
+      return res.status(403).json({ message: 'Usuario no asociado a una empresa' });
+    }
+
+    // Validar que el ID sea un ObjectId válido
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ message: 'ID inválido' });
+    }
+
+    // Verificar que la posición existe, pertenece a la empresa y está activa
+    const position = await JobPosition.findOne({
+      _id: id,
+      company_id,
+      activo: true
+    });
+
+    if (!position) {
+      return res.status(404).json({ message: 'Posición no encontrada' });
+    }
+
+    // Soft delete: cambiar activo a false
+    const deletedPosition = await JobPosition.findByIdAndUpdate(
+      id,
+      { activo: false },
+      { new: true }
+    );
+
+    res.status(200).json(deletedPosition);
+  } catch (error) {
+    console.error('Error eliminando posición:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+};

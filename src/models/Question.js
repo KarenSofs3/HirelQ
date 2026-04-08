@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const questionSchema = new mongoose.Schema({
   company_id: {
@@ -19,8 +19,7 @@ const questionSchema = new mongoose.Schema({
   categoria: {
     type: String,
     required: true,
-    trim: true,
-    maxlength: 100
+    trim: true
   },
   dificultad: {
     type: String,
@@ -39,4 +38,4 @@ const questionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('Question', questionSchema);
+export default mongoose.model('Question', questionSchema);
