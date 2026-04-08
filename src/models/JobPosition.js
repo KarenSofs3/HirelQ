@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const jobPositionSchema = new mongoose.Schema({
   company_id: {
@@ -33,4 +33,4 @@ const jobPositionSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('JobPosition', jobPositionSchema);
+export default mongoose.model('JobPosition', jobPositionSchema);
