@@ -7,6 +7,7 @@ import morgan from 'morgan';
 import companiesRoutes from './routes/companies.js';
 import usersRoutes from './routes/users.js';
 import jobPositionsRoutes from './routes/job_positions.js';
+import questionsRoutes from './routes/questions.js';
 import { authenticate, requireRole } from './middlewares/webToken.js';
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(express.static('public'));
 app.use('/companies', companiesRoutes);
 app.use('/auth', usersRoutes);
 app.use('/api/v1/positions', jobPositionsRoutes);
+app.use('/api/v1/questions', questionsRoutes);
 
 app.get('/life', (req, res) => res.send('server running'));
 
