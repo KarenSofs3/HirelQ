@@ -8,6 +8,7 @@ import companiesRoutes from './routes/companies.js';
 import usersRoutes from './routes/users.js';
 import jobPositionsRoutes from './routes/job_positions.js';
 import questionsRoutes from './routes/questions.js';
+import sessionsRoutes from './routes/sessions.js';
 import { authenticate, requireRole } from './middlewares/webToken.js';
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.use('/companies', companiesRoutes);
 app.use('/auth', usersRoutes);
 app.use('/api/v1/positions', jobPositionsRoutes);
 app.use('/api/v1/questions', questionsRoutes);
+app.use('/api/v1/sessions', sessionsRoutes);
 
 app.get('/life', (req, res) => res.send('server running'));
 
